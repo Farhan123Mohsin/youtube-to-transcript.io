@@ -1,0 +1,6 @@
+git init
+git add .
+git commit -m "Initial YouTube transcript app"
+git branch -M main
+git remote add origin https://github.com/Farhan123Mohsin/youtube-to-transcript.io
+git push -u origin main
