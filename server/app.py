@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from youtube_transcript_api import YouTubeTranscriptApi, NoTranscriptFound, VideoUnavailable
 from flask_cors import CORS
 from dotenv import load_dotenv
@@ -9,6 +9,10 @@ import os
 
 # Load environment variables from .env file
 load_dotenv()
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+# Built frontend (Vite) output path: ../client/dist
+FRONTEND_DIST_DIR = os.path.join(BASE_DIR, '..', 'client', 'dist')
 
 app = Flask(__name__)
 CORS(app, origins=['https://youtubetotranscript.io', 'http://localhost:5173', 'http://127.0.0.1:5173'])
@@ -199,6 +203,25 @@ def get_transcript():
 @app.route("/api/health", methods=["GET"])
 def health_check():
     return jsonify({'status': 'healthy', 'message': 'YouTube Transcript API is running'})
+
+
+@app.route('/', defaults={'path': ''})
+@app.route('/<path:path>')
+def serve_frontend(path):
+    """
+    Serve the built React frontend from client/dist.
+    Any path that doesn't start with 'api/' will be handled here.
+    """
+    # Don't let this catch API routes
+    if path.startswith('api/'):
+        return jsonify({'error': 'Not found'}), 404
+
+    # If the requested file exists (e.g. /assets/...), serve it directly
+    if path and os.path.exists(os.path.join(FRONTEND_DIST_DIR, path)):
+        return send_from_directory(FRONTEND_DIST_DIR, path)
+
+    # Otherwise, serve index.html (SPA fallback)
+    return send_from_directory(FRONTEND_DIST_DIR, 'index.html')
 
 if __name__ == '__main__':
     app.run(debug=True, host='127.0.0.1', port=5000)
