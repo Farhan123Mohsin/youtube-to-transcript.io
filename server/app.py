@@ -13,8 +13,16 @@ load_dotenv()
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 # Built frontend (Vite) output path: ../client/dist
 FRONTEND_DIST_DIR = os.path.join(BASE_DIR, '..', 'client', 'dist')
+# Static assets (JS/CSS/images) output path: ../client/dist/assets
+FRONTEND_ASSETS_DIR = os.path.join(FRONTEND_DIST_DIR, 'assets')
 
-app = Flask(__name__)
+# Configure Flask to serve built frontend
+app = Flask(
+    __name__,
+    static_folder=FRONTEND_ASSETS_DIR,   # 1) static files from ../client/dist/assets
+    static_url_path='/assets',           # served under /assets/...
+    template_folder=FRONTEND_DIST_DIR,   # 2) templates from ../client/dist
+)
 CORS(app, origins=['https://youtubetotranscript.io', 'http://localhost:5173', 'http://127.0.0.1:5173'])
 
 def extract_video_id(url):
