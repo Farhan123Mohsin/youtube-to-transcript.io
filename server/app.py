@@ -206,6 +206,10 @@ def get_transcript():
     except VideoUnavailable:
         return jsonify({'error': 'Video is unavailable or private'}), 404
     except Exception as e:
+        print("=" * 50)
+        print("FULL ERROR TRACEBACK:")
+        print(traceback.format_exc())
+        print("=" * 50)
         return jsonify({'error': f'Failed to fetch transcript: {str(e)}'}), 500
 
 @app.route("/api/health", methods=["GET"])
