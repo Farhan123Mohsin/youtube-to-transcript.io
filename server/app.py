@@ -6,6 +6,7 @@ import re
 import requests
 import json
 import os
+import traceback
 from youtube_transcript_api.proxies import GenericProxyConfig
 
 # Load environment variables from .env file
@@ -152,37 +153,36 @@ def get_transcript():
             return jsonify({'error': str(e)}), 400
         
         # Get video metadata
-    video_metadata = get_video_metadata(video_id)
-    
-    # Get transcript using youtube-transcript-api
-    # Try multiple languages in order of preference
-    try:
-        # Proxy configuration
-        proxy_username = os.environ.get("PROXY_USERNAME", "farhanmohsin866")
-        proxy_password = os.environ.get("PROXY_PASSWORD", "CY7jpurxDx")
-        proxy_host = os.environ.get("PROXY_HOST", "208.214.160.24")
-        proxy_port = os.environ.get("PROXY_PORT", "49155")
-
-        ytt_api = YouTubeTranscriptApi(
-            proxy_config=GenericProxyConfig(
-                http_url=f"http://{proxy_username}:{proxy_password}@{proxy_host}:{proxy_port}",
-                https_url=f"https://{proxy_username}:{proxy_password}@{proxy_host}:{proxy_port}",
-            )
-        )
+        video_metadata = get_video_metadata(video_id)
         
-        # First try to get transcript in the video's original language
-        transcript = ytt_api.fetch(video_id)
-    except NoTranscriptFound:
-        # If no transcript found, try common languages
+        # Get transcript using youtube-transcript-api
+        # Try multiple languages in order of preference
         try:
-            transcript = ytt_api.fetch(video_id, languages=[
-                'en', 'es', 'fr', 'de', 'it', 'pt', 'ru', 'ja', 'ko', 'zh',  # Original languages
-                'hi', 'ar', 'bn', 'ur', 'ta', 'te', 'ml', 'kn', 'gu', 'pa',  # Indian languages
-                'th', 'vi', 'id', 'ms', 'tl', 'nl', 'sv', 'no', 'da', 'fi',  # Southeast Asian & Nordic
-                'pl', 'cs', 'hu', 'ro', 'bg', 'hr', 'sk', 'sl', 'et', 'lv',  # Eastern European
-                'tr', 'fa', 'he', 'uk', 'be', 'ka', 'hy', 'az', 'kk', 'uz'   # Middle Eastern & Central Asian
-            ])
-   
+            # Proxy configuration
+            proxy_username = os.environ.get("PROXY_USERNAME", "farhanmohsin866")
+            proxy_password = os.environ.get("PROXY_PASSWORD", "CY7jpurxDx")
+            proxy_host = os.environ.get("PROXY_HOST", "208.214.160.24")
+            proxy_port = os.environ.get("PROXY_PORT", "49155")
+
+            ytt_api = YouTubeTranscriptApi(
+                proxy_config=GenericProxyConfig(
+                    http_url=f"http://{proxy_username}:{proxy_password}@{proxy_host}:{proxy_port}",
+                    https_url=f"https://{proxy_username}:{proxy_password}@{proxy_host}:{proxy_port}",
+                )
+            )
+            
+            # First try to get transcript in the video's original language
+            transcript = ytt_api.fetch(video_id)
+        except NoTranscriptFound:
+            # If no transcript found, try common languages
+            try:
+                transcript = ytt_api.fetch(video_id, languages=[
+                    'en', 'es', 'fr', 'de', 'it', 'pt', 'ru', 'ja', 'ko', 'zh',  # Original languages
+                    'hi', 'ar', 'bn', 'ur', 'ta', 'te', 'ml', 'kn', 'gu', 'pa',  # Indian languages
+                    'th', 'vi', 'id', 'ms', 'tl', 'nl', 'sv', 'no', 'da', 'fi',  # Southeast Asian & Nordic
+                    'pl', 'cs', 'hu', 'ro', 'bg', 'hr', 'sk', 'sl', 'et', 'lv',  # Eastern European
+                    'tr', 'fa', 'he', 'uk', 'be', 'ka', 'hy', 'az', 'kk', 'uz'   # Middle Eastern & Central Asian
+                ])
             except NoTranscriptFound:
                 # If still no transcript, try any available language
                 transcript = ytt_api.fetch(video_id, languages=['en'])
