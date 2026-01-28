@@ -155,20 +155,26 @@ def get_transcript():
         video_metadata = get_video_metadata(video_id)
         
         # Get transcript using youtube-transcript-api
-       # Proxy configuration
-proxy_username = os.environ.get("PROXY_USERNAME", "farhanmohsin866")
-proxy_password = os.environ.get("PROXY_PASSWORD", "CY7jpurxDx")
-proxy_host = os.environ.get("PROXY_HOST", "208.214.160.24")
-proxy_port = os.environ.get("PROXY_PORT", "49155")
 
-ytt_api = YouTubeTranscriptApi(
-    proxy_config=GenericProxyConfig(
-        http_url=f"http://{proxy_username}:{proxy_password}@{proxy_host}:{proxy_port}",
-        https_url=f"https://{proxy_username}:{proxy_password}@{proxy_host}:{proxy_port}",
-    )
-)
         # Try multiple languages in order of preference
         try:
+            try:
+    # Proxy configuration
+    proxy_username = os.environ.get("PROXY_USERNAME", "farhanmohsin866")
+    proxy_password = os.environ.get("PROXY_PASSWORD", "CY7jpurxDx")
+    proxy_host = os.environ.get("PROXY_HOST", "208.214.160.24")
+    proxy_port = os.environ.get("PROXY_PORT", "49155")
+
+    ytt_api = YouTubeTranscriptApi(
+        proxy_config=GenericProxyConfig(
+            http_url=f"http://{proxy_username}:{proxy_password}@{proxy_host}:{proxy_port}",
+            https_url=f"https://{proxy_username}:{proxy_password}@{proxy_host}:{proxy_port}",
+        )
+    )
+    
+    # Get transcript using youtube-transcript-api
+    # (baaki ka code same rahega)
+
             # First try to get transcript in the video's original language
             transcript = ytt_api.fetch(video_id)
         except NoTranscriptFound:
