@@ -157,7 +157,7 @@ def get_transcript():
         # Get transcript using youtube-transcript-api
 
         # Try multiple languages in order of preference
-        try:
+        
             try:
     # Proxy configuration
     proxy_username = os.environ.get("PROXY_USERNAME", "farhanmohsin866")
