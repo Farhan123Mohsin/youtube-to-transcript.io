@@ -1,11 +1,14 @@
 import sys
 import os
-
-# Add server folder to Python path for DigitalOcean
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'server'))
-
-# Import your backend app
 from server.app import app
+from flask import send_from_directory
+
+# ADD ROOT ROUTE
+@app.route('/')
+@app.route('/<path:path>')
+def catch_all(path='index.html'):
+    return send_from_directory('../client', 'index.html')
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8080))
