@@ -158,16 +158,19 @@ def get_transcript():
         # Get transcript using youtube-transcript-api
         # Try multiple languages in order of preference
         try:
-            # Proxy configuration
+            # SOCKS5 Proxy configuration
             proxy_username = os.environ.get("PROXY_USERNAME", "farhanmohsin866")
             proxy_password = os.environ.get("PROXY_PASSWORD", "CY7jpurxDx")
             proxy_host = os.environ.get("PROXY_HOST", "208.214.160.24")
-            proxy_port = os.environ.get("PROXY_PORT", "49155")
+            proxy_port = os.environ.get("PROXY_PORT", "49156")  # SOCKS5 port
+
+            # SOCKS5 proxy URL format
+            socks_proxy = f"socks5://{proxy_username}:{proxy_password}@{proxy_host}:{proxy_port}"
 
             ytt_api = YouTubeTranscriptApi(
                 proxy_config=GenericProxyConfig(
-                    http_url=f"http://{proxy_username}:{proxy_password}@{proxy_host}:{proxy_port}",
-                    https_url=f"https://{proxy_username}:{proxy_password}@{proxy_host}:{proxy_port}",
+                    http_url=socks_proxy,
+                    https_url=socks_proxy,
                 )
             )
             
