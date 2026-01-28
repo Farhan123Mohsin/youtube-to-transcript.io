@@ -6,6 +6,7 @@ import re
 import requests
 import json
 import os
+from youtube_transcript_api.proxies import GenericProxyConfig
 
 # Load environment variables from .env file
 load_dotenv()
@@ -154,7 +155,18 @@ def get_transcript():
         video_metadata = get_video_metadata(video_id)
         
         # Get transcript using youtube-transcript-api
-        ytt_api = YouTubeTranscriptApi()
+       # Proxy configuration
+proxy_username = os.environ.get("PROXY_USERNAME", "farhanmohsin866")
+proxy_password = os.environ.get("PROXY_PASSWORD", "CY7jpurxDx")
+proxy_host = os.environ.get("PROXY_HOST", "208.214.160.24")
+proxy_port = os.environ.get("PROXY_PORT", "49155")
+
+ytt_api = YouTubeTranscriptApi(
+    proxy_config=GenericProxyConfig(
+        http_url=f"http://{proxy_username}:{proxy_password}@{proxy_host}:{proxy_port}",
+        https_url=f"https://{proxy_username}:{proxy_password}@{proxy_host}:{proxy_port}",
+    )
+)
         # Try multiple languages in order of preference
         try:
             # First try to get transcript in the video's original language
