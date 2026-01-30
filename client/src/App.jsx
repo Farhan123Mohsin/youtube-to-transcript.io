@@ -384,21 +384,15 @@ function App() {
 
         {/* Enhanced Loading Indicator */}
         {isLoading && (
-          <div className="loading-container">
-            <div className="loading-spinner"></div>
-            <div className="loading-content">
-              <p className="loading-message">{loadingMessage}</p>
-              <div className="progress-bar">
-                <div 
-                  className="progress-fill" 
-                  style={{ width: `${loadingProgress}%` }}
-                ></div>
-              </div>
-              <p className="loading-time">⏱️ Estimated time: 5-10 seconds</p>
-              <p className="loading-hint">💡 Tip: First-time requests may take longer</p>
-            </div>
-          </div>
-        )}
+  <div className="simple-loading">
+    <div className="loading-bar">
+      <div className="loading-text">
+        <div className="loading-spinner"></div>
+        Generating Transcript...
+      </div>
+    </div>
+  </div>
+)}
 
         {videoMetadata && (
           <div className="video-info">
