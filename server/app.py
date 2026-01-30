@@ -155,22 +155,21 @@ def get_transcript():
         # Get video metadata
         video_metadata = get_video_metadata(video_id)
         
-        # Get transcript using youtube-transcript-api
-        # Try multiple languages in order of preference
+        # Get transcript using youtube-transcript-api with Webshare rotating proxy
         try:
-            # HTTP Proxy configuration (port 49155)
-            proxy_username = os.environ.get("PROXY_USERNAME", "farhanmohsin866")
-            proxy_password = os.environ.get("PROXY_PASSWORD", "CY7jpurxDx")
-            proxy_host = os.environ.get("PROXY_HOST", "208.214.160.24")
-            proxy_port = os.environ.get("PROXY_PORT", "49155")  # HTTP/HTTPS port
+            # Webshare Rotating Residential Proxy configuration
+            proxy_username = os.environ.get("PROXY_USERNAME", "usxjjram-1")
+            proxy_password = os.environ.get("PROXY_PASSWORD", "r75q7501wla6")
+            proxy_host = os.environ.get("PROXY_HOST", "p.webshare.io")
+            proxy_port = os.environ.get("PROXY_PORT", "80")
 
-            # HTTP proxy URL
-            http_proxy = f"http://{proxy_username}:{proxy_password}@{proxy_host}:{proxy_port}"
+            # Webshare proxy URL
+            webshare_proxy = f"http://{proxy_username}:{proxy_password}@{proxy_host}:{proxy_port}/"
 
             ytt_api = YouTubeTranscriptApi(
                 proxy_config=GenericProxyConfig(
-                    http_url=http_proxy,
-                    https_url=http_proxy,
+                    http_url=webshare_proxy,
+                    https_url=webshare_proxy,
                 )
             )
             
