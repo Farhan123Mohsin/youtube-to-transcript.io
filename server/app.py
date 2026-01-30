@@ -155,15 +155,15 @@ def get_transcript():
         # Get video metadata
         video_metadata = get_video_metadata(video_id)
         
-        # Get transcript using youtube-transcript-api with Webshare rotating proxy
+        # Get transcript using youtube-transcript-api with Webshare Rotating Residential Proxy
         try:
             # Webshare Rotating Residential Proxy configuration
-            proxy_username = os.environ.get("PROXY_USERNAME", "usxjjram-1")
+            proxy_username = os.environ.get("PROXY_USERNAME", "usxjjram-rotate")
             proxy_password = os.environ.get("PROXY_PASSWORD", "r75q7501wla6")
             proxy_host = os.environ.get("PROXY_HOST", "p.webshare.io")
             proxy_port = os.environ.get("PROXY_PORT", "80")
 
-            # Webshare proxy URL
+            # Webshare rotating proxy URL
             webshare_proxy = f"http://{proxy_username}:{proxy_password}@{proxy_host}:{proxy_port}/"
 
             ytt_api = YouTubeTranscriptApi(
