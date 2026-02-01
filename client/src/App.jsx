@@ -13,6 +13,7 @@ const PDF_UNSAFE_LANGUAGE_CODES = [
 
 function App() {
   const [youtubeUrl, setYoutubeUrl] = useState('')
+  const [loadingProgress, setLoadingProgress] = useState(0)
   const [transcript, setTranscript] = useState('')
   const [segments, setSegments] = useState([])
   const [isLoading, setIsLoading] = useState(false)
@@ -31,7 +32,28 @@ function App() {
   const turnstileWidgetId = useRef(null)
   const turnstileContainerRef = useRef(null)
 
+<<<<<<< HEAD
   // Turnstile initialization
+=======
+  // Progress bar animation for submit button
+  useEffect(() => {
+    let progressInterval;
+    if (isLoading) {
+      setLoadingProgress(0);
+      progressInterval = setInterval(() => {
+        setLoadingProgress((prev) => {
+          if (prev >= 100) return 100;
+          // Simulate progress, slow down as it approaches 100
+          return prev + Math.max(1, Math.floor((100 - prev) / 10));
+        });
+      }, 120);
+    } else {
+      setLoadingProgress(0);
+    }
+    return () => clearInterval(progressInterval);
+  }, [isLoading]);
+
+>>>>>>> 8a301a0 (Add Google Analytics gtag.js to index.html)
   useEffect(() => {
     const loadTurnstile = () => {
       if (window.turnstile && turnstileContainerRef.current) {
@@ -140,6 +162,7 @@ function App() {
       setLoadingProgress(100)
       setLoadingMessage('✅ Transcript ready!')
       
+<<<<<<< HEAD
       setTimeout(() => {
         setTranscript(data.transcript)
         setTimestampedTranscript(data.timestamped_transcript)
@@ -156,11 +179,41 @@ function App() {
 
       // Reset Turnstile
       if (window.turnstile && turnstileWidgetId.current !== null) {
+=======
+      if (data.error) {
+        setError(data.error);
+        return;
+      }
+      
+      setTranscript(data.transcript);
+      setTimestampedTranscript(data.timestamped_transcript || '');
+      setSegments(data.segments || []);
+      setVideoInfo({
+        videoId: data.video_id,
+        language: data.language,
+        languageCode: data.language_code,
+        isGenerated: data.is_generated
+      });
+      setVideoMetadata(data.video_metadata || null);
+      // Reset Turnstile widget after successful submission
+      if (turnstileWidgetId.current && window.turnstile) {
+>>>>>>> 8a301a0 (Add Google Analytics gtag.js to index.html)
         window.turnstile.reset(turnstileWidgetId.current)
       }
       
     } catch (err) {
+<<<<<<< HEAD
       setError(err.message)
+=======
+      console.error('Error details:', err);
+      setError(`Failed to fetch transcript: ${err.message}`)
+      // Reset Turnstile widget on error
+      if (turnstileWidgetId.current && window.turnstile) {
+        window.turnstile.reset(turnstileWidgetId.current)
+        setTurnstileToken('')
+      }
+    } finally {
+>>>>>>> 8a301a0 (Add Google Analytics gtag.js to index.html)
       setIsLoading(false)
       
       // Reset Turnstile on error
@@ -357,6 +410,7 @@ function App() {
           <p>Extract transcripts from any YouTube video instantly</p>
         </header>
 
+<<<<<<< HEAD
         <form onSubmit={handleSubmit} className="input-form">
           <div className="input-group">
             <input
@@ -371,6 +425,83 @@ function App() {
             <button type="submit" className="submit-btn" disabled={isLoading || !turnstileToken}>
               {isLoading ? 'Processing...' : 'Get Transcript'}
             </button>
+=======
+        {/* Main Content */}
+        <div className="max-w-4xl mx-auto">
+          {/* URL Input Form */}
+          <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6 mb-8">
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label htmlFor="youtube-url" className="block text-sm font-medium text-gray-700 mb-2">
+                  YouTube Video URL
+                </label>
+                <input
+                  type="url"
+                  id="youtube-url"
+                  value={youtubeUrl}
+                  onChange={(e) => setYoutubeUrl(e.target.value)}
+                  placeholder="https://www.youtube.com/watch?v=... or https://youtu.be/..."
+                  className="w-full px-4 py-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50/50 backdrop-blur-sm text-gray-900 placeholder-gray-500"
+                  disabled={isLoading}
+                />
+              </div>
+              {/* Turnstile widget */}
+              {import.meta.env.VITE_TURNSTILE_SITE_KEY && (
+                <div className="mt-2">
+                  <div ref={turnstileContainerRef}></div>
+                </div>
+              )}
+              
+              <button
+                type="submit"
+                disabled={isLoading || !youtubeUrl}
+                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:from-gray-400 disabled:to-gray-400 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-200 flex items-center justify-center shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 relative overflow-hidden submit-btn"
+                aria-busy={isLoading}
+              >
+                {/* Progress bar fill */}
+                {isLoading && (
+                  <span
+                    className="absolute left-0 top-0 h-full bg-blue-500/60 z-0 progress-bar-fill"
+                    style={{ width: `${loadingProgress}%`, transition: 'width 0.2s linear' }}
+                    aria-hidden="true"
+                  />
+                )}
+                <span className="relative z-10 flex items-center">
+                  {isLoading ? (
+                    <>
+                      <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      <span className="animate-pulse">Generating Transcript...</span>
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                      </svg>
+                      Generate Transcript
+                    </>
+                  )}
+                </span>
+              </button>
+            </form>
+
+            {/* Error Message */}
+            {error && (
+              <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg animate-fade-in">
+                <div className="flex items-start">
+                  <svg className="w-5 h-5 text-red-400 mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <div>
+                    <h3 className="text-red-800 font-medium">Error</h3>
+                    <p className="text-red-600 mt-1">{error}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+>>>>>>> 8a301a0 (Add Google Analytics gtag.js to index.html)
           </div>
           
           <div ref={turnstileContainerRef} className="turnstile-container"></div>
