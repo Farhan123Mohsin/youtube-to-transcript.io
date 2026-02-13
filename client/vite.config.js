@@ -5,6 +5,7 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   server: {
+    host: '127.0.0.1',
     proxy: {
       // Proxy API requests to local Flask server during development
       '/api': 'http://127.0.0.1:5000',
