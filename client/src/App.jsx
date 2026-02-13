@@ -830,8 +830,7 @@ function App() {
               <p className="text-gray-600">Your data is safe and never stored. Privacy-first approach.</p>
             </div>
           </div>
-        )}
-        </div>
+          </section>
       </div>
     </div>
   )
