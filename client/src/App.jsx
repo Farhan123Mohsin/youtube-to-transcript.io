@@ -24,9 +24,12 @@ function App() {
   const [includeTimestamps, setIncludeTimestamps] = useState(false)
   const [timestampedTranscript, setTimestampedTranscript] = useState('')
   const [isDownloadOpen, setIsDownloadOpen] = useState(false)
+  const [isThumbnailDropdownOpen, setIsThumbnailDropdownOpen] = useState(false)
   const [turnstileToken, setTurnstileToken] = useState('')
   
   const transcriptRef = useRef(null)
+  const thumbnailDropdownRef = useRef(null)
+  const downloadDropdownRef = useRef(null)
   const turnstileWidgetId = useRef(null)
   const turnstileContainerRef = useRef(null)
 
@@ -64,6 +67,28 @@ function App() {
       }
     }
   }, [])
+
+  useEffect(() => {
+    if (!isThumbnailDropdownOpen) return
+    const close = (e) => {
+      if (thumbnailDropdownRef.current && !thumbnailDropdownRef.current.contains(e.target)) {
+        setIsThumbnailDropdownOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', close)
+    return () => document.removeEventListener('mousedown', close)
+  }, [isThumbnailDropdownOpen])
+
+  useEffect(() => {
+    if (!isDownloadOpen) return
+    const close = (e) => {
+      if (downloadDropdownRef.current && !downloadDropdownRef.current.contains(e.target)) {
+        setIsDownloadOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', close)
+    return () => document.removeEventListener('mousedown', close)
+  }, [isDownloadOpen])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -462,65 +487,72 @@ function App() {
             )}
           </div>
 
-          {/* Video Metadata Display */}
+          {/* ─── Results: Thumbnail (top) then Transcript (below, easy access) ─── */}
           {videoMetadata && (
-            <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6 mb-8 animate-fade-in video-metadata">
-              <div className="flex flex-col md:flex-row gap-6">
-                {/* Video Thumbnail + prominent download with quality */}
-                {videoMetadata?.thumbnail_url && videoInfo?.videoId && (
-                  <div className="flex-shrink-0 flex flex-col gap-4">
-                    <img 
-                      src={videoMetadata.thumbnail_url} 
-                      alt={videoMetadata.title}
-                      className="w-full md:w-56 h-auto max-h-40 md:max-h-44 object-cover rounded-xl shadow-lg border border-gray-200"
-                    />
-                    <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
-                      <p className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
-                        <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3" />
-                        </svg>
-                        Download thumbnail
-                      </p>
-                      <div className="flex flex-wrap gap-2">
-                        {THUMBNAIL_QUALITIES.map(({ id, label }) => (
-                          <button
-                            key={id}
-                            type="button"
-                            onClick={() => downloadThumbnail(id)}
-                            className="font-medium py-2 px-3 rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white text-sm shadow-md hover:shadow-lg transition-all"
-                          >
-                            {label}
-                          </button>
-                        ))}
+            <div className="mb-6 animate-fade-in">
+              {/* Section 1: Thumbnail & video info — compact, professional */}
+              <div className="bg-white rounded-2xl shadow-lg border border-gray-200/80 overflow-visible">
+                <div className="p-5">
+                  <div className="flex flex-col sm:flex-row gap-5">
+                    {videoMetadata.thumbnail_url && videoInfo?.videoId && (
+                      <div className="flex-shrink-0">
+                        <div className="relative group rounded-xl overflow-hidden border border-gray-200 shadow-sm w-full sm:w-52 aspect-video bg-gray-100">
+                          <img
+                            src={videoMetadata.thumbnail_url}
+                            alt={videoMetadata.title}
+                            className="w-full h-full object-cover"
+                          />
+                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                )}
-                
-                {/* Video Info */}
-                <div className="flex-1">
-                  <h3 className="text-xl font-bold text-gray-900 mb-2 line-clamp-2">
-                    {videoMetadata.title}
-                  </h3>
-                  <div className="flex items-center text-gray-600 mb-3">
-                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
-                    <span className="font-medium">{videoMetadata.author_name}</span>
-                  </div>
-                  
-                  <div className="flex flex-wrap gap-3 text-sm">
-                    <div className="flex items-center text-gray-500">
-                      <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                      </svg>
-                      YouTube Video
-                    </div>
-                    <div className="flex items-center text-gray-500">
-                      <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                      </svg>
-                      ID: {videoInfo?.videoId}
+                    )}
+                    <div className="flex-1 min-w-0 flex flex-col justify-center">
+                      <h3 className="text-lg font-semibold text-gray-900 line-clamp-2 leading-snug">
+                        {videoMetadata.title}
+                      </h3>
+                      <p className="text-sm text-gray-500 mt-1 flex items-center gap-1.5">
+                        <span>{videoMetadata.author_name}</span>
+                        {videoInfo?.videoId && (
+                          <>
+                            <span aria-hidden>·</span>
+                            <span className="font-mono text-xs">{videoInfo.videoId}</span>
+                          </>
+                        )}
+                      </p>
+                      {videoMetadata.thumbnail_url && videoInfo?.videoId && (
+                        <div className="mt-4 relative inline-flex" ref={thumbnailDropdownRef}>
+                          <button
+                            type="button"
+                            onClick={() => setIsThumbnailDropdownOpen((o) => !o)}
+                            className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
+                          >
+                            <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3" />
+                            </svg>
+                            Download thumbnail
+                            <svg className={`w-4 h-4 transition-transform ${isThumbnailDropdownOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                            </svg>
+                          </button>
+                          {isThumbnailDropdownOpen && (
+                            <div className="absolute left-0 bottom-full z-30 mb-1 w-56 rounded-lg border border-gray-200 bg-white py-1 shadow-xl">
+                              {THUMBNAIL_QUALITIES.map(({ id, label }) => (
+                                <button
+                                  key={id}
+                                  type="button"
+                                  onClick={() => {
+                                    downloadThumbnail(id)
+                                    setIsThumbnailDropdownOpen(false)
+                                  }}
+                                  className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                                >
+                                  <span className="text-gray-400">{label}</span>
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -528,171 +560,100 @@ function App() {
             </div>
           )}
 
-
-
-          {/* Transcript Display */}
+          {/* Section 2: Transcript — prominent, easy access */}
           {transcript && (
-            <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-8 animate-fade-in">
-              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-4">
-                <div>
-                  <div className="flex items-center gap-3 mb-2">
-                    <h2 className="text-2xl font-bold text-gray-900">Transcript</h2>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3 flex-wrap">
-                  {/* Timestamp Toggle Button */}
-                  <button
-                    onClick={() => setIncludeTimestamps(!includeTimestamps)}
-                    className={`font-medium py-2 px-4 rounded-lg transition-all duration-200 flex items-center ${
-                      includeTimestamps 
-                        ? 'bg-purple-100 text-purple-700 border border-purple-200' 
-                        : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
-                    }`}
-                  >
-                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    {includeTimestamps ? 'Hide Timestamps' : 'Show Timestamps'}
-                  </button>
-                  
-                  {/* Copy Button */}
-                  <button
-                    onClick={copyToClipboard}
-                    className={`font-medium py-2 px-4 rounded-lg transition-all duration-200 flex items-center ${
-                      copySuccess 
-                        ? 'bg-green-100 text-green-700 border border-green-200' 
-                        : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
-                    }`}
-                  >
-                    {copySuccess ? (
-                      <>
-                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            <div className="animate-fade-in">
+              <div className="bg-white rounded-2xl shadow-lg border border-gray-200/80 overflow-hidden">
+                <div className="px-6 pt-6 pb-4 border-b border-gray-100">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div>
+                      <h2 className="text-xl font-bold text-gray-900">Transcript</h2>
+                      <p className="text-sm text-gray-500 mt-0.5">Copy or download in your preferred format</p>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <button
+                        onClick={() => setIncludeTimestamps(!includeTimestamps)}
+                        className={`inline-flex items-center gap-2 rounded-lg px-3.5 py-2 text-sm font-medium transition-colors ${
+                          includeTimestamps
+                            ? 'bg-indigo-50 text-indigo-700 border border-indigo-200'
+                            : 'bg-gray-100 text-gray-700 border border-transparent hover:bg-gray-200'
+                        }`}
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
-                        Copied!
-                      </>
-                    ) : (
-                      <>
-                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                        </svg>
-                        Copy
-                      </>
-                    )}
-                  </button>
-                  {/* Download primary button + dropdown */}
-                  <div className="relative inline-flex">
-                    {/* Primary TXT download */}
-                    <button
-                      onClick={downloadAsText}
-                      disabled={!transcript}
-                      className={`font-medium py-2 px-4 rounded-l-lg border-r transition-all duration-200 flex items-center ${
-                        transcript
-                          ? 'bg-blue-100 hover:bg-blue-200 text-blue-700 border-blue-200'
-                          : 'bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200'
-                      }`}
-                    >
-                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3" />
-                      </svg>
-                      Download TXT
-                    </button>
-                    {/* Dropdown toggle */}
-                    <button
-                      type="button"
-                      onClick={() => setIsDownloadOpen((open) => !open)}
-                      className={`font-medium py-2 px-2 rounded-r-lg border-l transition-all duration-200 flex items-center ${
-                        transcript || segments.length
-                          ? 'bg-blue-100 hover:bg-blue-200 text-blue-700 border-blue-200'
-                          : 'bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200'
-                      }`}
-                      disabled={!transcript && !segments.length}
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </button>
-                    {/* Dropdown menu */}
-                    {isDownloadOpen && (transcript || segments.length) && (
-                      <div className="origin-top-right absolute right-0 mt-2 w-52 rounded-md shadow-lg bg-white ring-1 ring-black/5 z-20">
-                        <div className="py-1 text-sm text-gray-700">
-                          <button
-                            onClick={() => {
-                              downloadAsText()
-                              setIsDownloadOpen(false)
-                            }}
-                            className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center"
-                            disabled={!transcript}
-                          >
-                            <span className="mr-2">📄</span> TXT (Plain text)
-                          </button>
-                          <button
-                            onClick={() => {
-                              downloadAsDocx()
-                              setIsDownloadOpen(false)
-                            }}
-                            className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center"
-                            disabled={!transcript}
-                          >
-                            <span className="mr-2">📝</span> DOCX (Document)
-                          </button>
-                          {isPdfSafe() && (
-                            <button
-                              onClick={() => {
-                                downloadAsPdf()
-                                setIsDownloadOpen(false)
-                              }}
-                              className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center"
-                              disabled={!transcript}
-                            >
-                              <span className="mr-2">📕</span> PDF (Safe languages)
-                            </button>
-                          )}
-                          <div className="border-t my-1" />
-                          <button
-                            onClick={() => {
-                              downloadAsSrt()
-                              setIsDownloadOpen(false)
-                            }}
-                            className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center"
-                            disabled={!segments.length}
-                          >
-                            <span className="mr-2">🎬</span> SRT (Subtitles)
-                          </button>
-                          <button
-                            onClick={() => {
-                              downloadAsVtt()
-                              setIsDownloadOpen(false)
-                            }}
-                            className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center"
-                            disabled={!segments.length}
-                          >
-                            <span className="mr-2">🖥️</span> VTT (WebVTT)
-                          </button>
-                          <button
-                            onClick={() => {
-                              downloadAsCsv()
-                              setIsDownloadOpen(false)
-                            }}
-                            className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center"
-                            disabled={!segments.length}
-                          >
-                            <span className="mr-2">📊</span> CSV (Data)
-                          </button>
-                        </div>
+                        {includeTimestamps ? 'Hide timestamps' : 'Show timestamps'}
+                      </button>
+                      <button
+                        onClick={copyToClipboard}
+                        className={`inline-flex items-center gap-2 rounded-lg px-3.5 py-2 text-sm font-medium border transition-colors ${
+                          copySuccess
+                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                            : 'bg-gray-100 text-gray-700 border-transparent hover:bg-gray-200'
+                        }`}
+                      >
+                        {copySuccess ? (
+                          <>
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                            Copied
+                          </>
+                        ) : (
+                          <>
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                            </svg>
+                            Copy
+                          </>
+                        )}
+                      </button>
+                      <div className="relative inline-flex" ref={downloadDropdownRef}>
+                        <button
+                          onClick={downloadAsText}
+                          disabled={!transcript}
+                          className="inline-flex items-center gap-2 rounded-l-lg border border-gray-300 bg-white px-3.5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3" />
+                          </svg>
+                          TXT
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setIsDownloadOpen((o) => !o)}
+                          disabled={!transcript && !segments.length}
+                          className="rounded-r-lg border border-l-0 border-gray-300 bg-white px-2 py-2 text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </button>
+                        {isDownloadOpen && (transcript || segments.length) && (
+                          <div className="absolute right-0 top-full z-20 mt-1 w-52 rounded-lg border border-gray-200 bg-white py-1 shadow-lg">
+                            <button onClick={() => { downloadAsText(); setIsDownloadOpen(false) }} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50" disabled={!transcript}>TXT</button>
+                            <button onClick={() => { downloadAsDocx(); setIsDownloadOpen(false) }} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50" disabled={!transcript}>DOCX</button>
+                            {isPdfSafe() && <button onClick={() => { downloadAsPdf(); setIsDownloadOpen(false) }} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50" disabled={!transcript}>PDF</button>}
+                            <div className="border-t my-1" />
+                            <button onClick={() => { downloadAsSrt(); setIsDownloadOpen(false) }} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50" disabled={!segments.length}>SRT</button>
+                            <button onClick={() => { downloadAsVtt(); setIsDownloadOpen(false) }} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50" disabled={!segments.length}>VTT</button>
+                            <button onClick={() => { downloadAsCsv(); setIsDownloadOpen(false) }} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50" disabled={!segments.length}>CSV</button>
+                          </div>
+                        )}
                       </div>
-                    )}
+                    </div>
                   </div>
                 </div>
-              </div>
-              
-              <div className="bg-gray-50 rounded-lg p-6 max-h-96 overflow-y-auto border border-gray-200 transcript-scroll">
-                <pre
-                  ref={transcriptRef}
-                  className={`whitespace-pre-wrap text-gray-800 leading-relaxed font-sans text-sm ${includeTimestamps && timestampedTranscript ? 'timestamped-transcript' : ''}`}
-                >
-                  {includeTimestamps && timestampedTranscript ? timestampedTranscript : transcript}
-                </pre>
+                <div className="p-6">
+                  <div className="rounded-xl bg-gray-50/80 border border-gray-200/80 p-5 max-h-[32rem] overflow-y-auto">
+                    <pre
+                      ref={transcriptRef}
+                      className={`whitespace-pre-wrap text-gray-800 leading-relaxed font-sans text-sm ${includeTimestamps && timestampedTranscript ? 'timestamped-transcript' : ''}`}
+                    >
+                      {includeTimestamps && timestampedTranscript ? timestampedTranscript : transcript}
+                    </pre>
+                  </div>
+                </div>
               </div>
             </div>
           )}

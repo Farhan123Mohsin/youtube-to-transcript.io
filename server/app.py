@@ -102,11 +102,11 @@ def verify_turnstile_token(token, remote_ip=None):
     """
     secret_key = os.environ.get("TURNSTILE_SECRET_KEY")
     if not secret_key:
-        # In production you should require this to be set.
         print("WARNING: TURNSTILE_SECRET_KEY is not set; skipping Turnstile verification.")
         return True
 
-    if not token:
+    if not token or not str(token).strip():
+        print("Turnstile: no token received. Ensure frontend has VITE_TURNSTILE_SITE_KEY and widget is rendered.")
         return False
 
     try:
@@ -120,14 +120,19 @@ def verify_turnstile_token(token, remote_ip=None):
         resp = requests.post(
             "https://challenges.cloudflare.com/turnstile/v0/siteverify",
             data=payload,
-            timeout=5,
+            timeout=10,
         )
         data = resp.json()
-        return bool(data.get("success"))
+        if data.get("success"):
+            return True
+        # Log Cloudflare error for debugging (e.g. invalid-input-response, timeout-or-duplicate, wrong domain)
+        err_codes = data.get("error-codes", [])
+        print(f"Turnstile verify failed: {err_codes}. Add your production domain in Cloudflare Turnstile dashboard.")
+        return False
     except Exception as e:
-        print(f"Error verifying Turnstile token: {str(e)}")
-        # Fail open in case of verification error to avoid blocking legit users if CF is down.
-        return True
+        print(f"Turnstile verify error: {str(e)}")
+        traceback.print_exc()
+        return False
 
 
 @app.route("/api/transcript", methods=["POST"])
@@ -138,11 +143,13 @@ def get_transcript():
         if not data or 'youtubeUrl' not in data:
             return jsonify({'error': 'YouTube URL is required'}), 400
 
-        # Verify Cloudflare Turnstile token
-        token = data.get('turnstileToken')
+        # Verify Cloudflare Turnstile token (accept both camelCase and snake_case from frontend)
+        token = data.get('turnstileToken') or data.get('turnstile_token')
         remote_ip = request.headers.get('CF-Connecting-IP', request.remote_addr)
         if not verify_turnstile_token(token, remote_ip):
-            return jsonify({'error': 'Human verification failed. Please refresh and try again.'}), 400
+            return jsonify({
+                'error': 'Verification failed. Please complete the challenge again and submit.'
+            }), 400
         
         youtube_url = data['youtubeUrl']
         
