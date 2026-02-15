@@ -1,0 +1,8 @@
+# DigitalOcean App Platform – Frontend environment variables
+# Add these in: Your App → Frontend component → Settings → Environment Variables
+#
+# Turnstile: use SITE KEY (public) on frontend. Do NOT put the secret key here.
+# Get site key from: https://dash.cloudflare.com/?to=/:account/turnstile
+#
+# Name:   VITE_TURNSTILE_SITE_KEY
+# Value:  (paste your Turnstile site key here)

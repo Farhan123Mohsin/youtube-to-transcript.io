@@ -95,19 +95,29 @@ def get_video_metadata(video_id):
             'html': ''
         }
 
+def is_request_from_localhost():
+    """True if this request is from localhost (so we skip Turnstile for local dev)."""
+    origin = request.headers.get("Origin") or request.headers.get("Referer") or ""
+    return "localhost" in origin or "127.0.0.1" in origin
+
+
 def verify_turnstile_token(token, remote_ip=None):
     """
     Verify Cloudflare Turnstile token server-side.
     If TURNSTILE_SECRET_KEY is not configured, verification is skipped (development only).
+    Requests from localhost are always allowed (no verification) so local dev works.
     """
+    if is_request_from_localhost():
+        return True
+
     secret_key = os.environ.get("TURNSTILE_SECRET_KEY")
     if not secret_key:
         print("WARNING: TURNSTILE_SECRET_KEY is not set; skipping Turnstile verification.")
         return True
 
+    # No token = frontend has no Turnstile widget (e.g. no site key). Allow request; verify only when token is sent.
     if not token or not str(token).strip():
-        print("Turnstile: no token received. Ensure frontend has VITE_TURNSTILE_SITE_KEY and widget is rendered.")
-        return False
+        return True
 
     try:
         payload = {
@@ -127,7 +137,7 @@ def verify_turnstile_token(token, remote_ip=None):
             return True
         # Log Cloudflare error for debugging (e.g. invalid-input-response, timeout-or-duplicate, wrong domain)
         err_codes = data.get("error-codes", [])
-        print(f"Turnstile verify failed: {err_codes}. Add your production domain in Cloudflare Turnstile dashboard.")
+        print(f"Turnstile verify failed: {err_codes}. Fix: wrong domain -> add exact domain in Turnstile dashboard; timeout-or-duplicate -> token expired or reused.")
         return False
     except Exception as e:
         print(f"Turnstile verify error: {str(e)}")

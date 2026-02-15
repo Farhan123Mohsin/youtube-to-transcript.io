@@ -33,7 +33,13 @@ function App() {
   const turnstileWidgetId = useRef(null)
   const turnstileContainerRef = useRef(null)
 
+  // Turnstile only on production (not on localhost) so local dev works without challenge
+  const isLocalhost = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+  const turnstileEnabled = !isLocalhost && !!import.meta.env.VITE_TURNSTILE_SITE_KEY
+
   useEffect(() => {
+    if (!turnstileEnabled) return
+
     const loadTurnstile = () => {
       if (window.turnstile && turnstileContainerRef.current) {
         try {
@@ -66,7 +72,7 @@ function App() {
         document.body.removeChild(script)
       }
     }
-  }, [])
+  }, [turnstileEnabled])
 
   useEffect(() => {
     if (!isThumbnailDropdownOpen) return
@@ -93,9 +99,8 @@ function App() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     
-    // Only require Turnstile when site key is configured (e.g. production)
-    const turnstileRequired = !!import.meta.env.VITE_TURNSTILE_SITE_KEY
-    if (turnstileRequired && !turnstileToken) {
+    // Only require Turnstile when enabled (production with site key; not on localhost)
+    if (turnstileEnabled && !turnstileToken) {
       setError('Please complete the verification')
       return
     }
@@ -444,7 +449,7 @@ function App() {
                   disabled={isLoading}
                 />
               </div>
-              {import.meta.env.VITE_TURNSTILE_SITE_KEY && (
+              {turnstileEnabled && (
                 <div className="mt-2">
                   <div ref={turnstileContainerRef}></div>
                 </div>
