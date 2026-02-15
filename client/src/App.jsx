@@ -12,6 +12,9 @@ const PDF_UNSAFE_LANGUAGE_CODES = [
   'th', 'km', 'my', 'lo', 'si'
 ]
 
+// Same behaviour local vs online: relative /api by default; set VITE_API_BASE_URL when frontend and backend are on different origins
+const getApiBase = () => (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_BASE_URL) ? import.meta.env.VITE_API_BASE_URL.replace(/\/$/, '') : ''
+
 function App() {
   const [youtubeUrl, setYoutubeUrl] = useState('')
   const [transcript, setTranscript] = useState('')
@@ -26,25 +29,37 @@ function App() {
   const [isDownloadOpen, setIsDownloadOpen] = useState(false)
   const [isThumbnailDropdownOpen, setIsThumbnailDropdownOpen] = useState(false)
   const [turnstileToken, setTurnstileToken] = useState('')
-  
+  const [turnstileSiteKey, setTurnstileSiteKey] = useState(null) // from /api/config so online works without build-time env
+
   const transcriptRef = useRef(null)
   const thumbnailDropdownRef = useRef(null)
   const downloadDropdownRef = useRef(null)
   const turnstileWidgetId = useRef(null)
   const turnstileContainerRef = useRef(null)
 
-  // Turnstile only on production (not on localhost) so local dev works without challenge
+  // Turnstile only on production (not on localhost); site key from build env OR from backend /api/config
   const isLocalhost = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-  const turnstileEnabled = !isLocalhost && !!import.meta.env.VITE_TURNSTILE_SITE_KEY
+  const siteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY || turnstileSiteKey
+  const turnstileEnabled = !isLocalhost && !!siteKey
+
+  // Fetch Turnstile site key from backend when online (so DO doesn't need VITE_ env at build time)
+  useEffect(() => {
+    if (isLocalhost) return
+    if (import.meta.env.VITE_TURNSTILE_SITE_KEY) return
+    fetch(`${getApiBase()}/api/config`)
+      .then((r) => r.ok ? r.json() : {})
+      .then((d) => { if (d && d.turnstileSiteKey) setTurnstileSiteKey(d.turnstileSiteKey) })
+      .catch(() => {})
+  }, [isLocalhost])
 
   useEffect(() => {
-    if (!turnstileEnabled) return
+    if (!turnstileEnabled || !siteKey) return
 
     const loadTurnstile = () => {
       if (window.turnstile && turnstileContainerRef.current) {
         try {
           turnstileWidgetId.current = window.turnstile.render(turnstileContainerRef.current, {
-            sitekey: import.meta.env.VITE_TURNSTILE_SITE_KEY,
+            sitekey: siteKey,
             callback: (token) => {
               setTurnstileToken(token)
             },
@@ -72,7 +87,7 @@ function App() {
         document.body.removeChild(script)
       }
     }
-  }, [turnstileEnabled])
+  }, [turnstileEnabled, siteKey])
 
   useEffect(() => {
     if (!isThumbnailDropdownOpen) return
@@ -113,7 +128,7 @@ function App() {
     setVideoMetadata(null)
 
     try {
-      const response = await fetch("/api/transcript", {
+      const response = await fetch(`${getApiBase()}/api/transcript`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

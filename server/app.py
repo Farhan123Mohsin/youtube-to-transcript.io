@@ -250,6 +250,13 @@ def health_check():
     return jsonify({'status': 'healthy', 'message': 'YouTube Transcript API is running'})
 
 
+@app.route("/api/config", methods=["GET"])
+def get_config():
+    """Public config for frontend (e.g. Turnstile site key so widget works without build-time env)."""
+    site_key = os.environ.get("TURNSTILE_SITE_KEY", "").strip()
+    return jsonify({'turnstileSiteKey': site_key or None})
+
+
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
 def serve_frontend(path):
