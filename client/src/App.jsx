@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import jsPDF from 'jspdf'
+import FAQSection from './components/FAQSection'
+import BookmarkBar from './components/BookmarkBar'
 import './App.css'
 
 const PDF_UNSAFE_LANGUAGE_CODES = [
@@ -27,12 +29,10 @@ function App() {
   const [includeTimestamps, setIncludeTimestamps] = useState(false)
   const [timestampedTranscript, setTimestampedTranscript] = useState('')
   const [isDownloadOpen, setIsDownloadOpen] = useState(false)
-  const [isThumbnailDropdownOpen, setIsThumbnailDropdownOpen] = useState(false)
+  const [selectedThumbnailQuality, setSelectedThumbnailQuality] = useState('maxresdefault')
   const [turnstileToken, setTurnstileToken] = useState('')
   const [turnstileSiteKey, setTurnstileSiteKey] = useState(null) // from /api/config so online works without build-time env
-
   const transcriptRef = useRef(null)
-  const thumbnailDropdownRef = useRef(null)
   const downloadDropdownRef = useRef(null)
   const turnstileWidgetId = useRef(null)
   const turnstileContainerRef = useRef(null)
@@ -88,17 +88,6 @@ function App() {
       }
     }
   }, [turnstileEnabled, siteKey])
-
-  useEffect(() => {
-    if (!isThumbnailDropdownOpen) return
-    const close = (e) => {
-      if (thumbnailDropdownRef.current && !thumbnailDropdownRef.current.contains(e.target)) {
-        setIsThumbnailDropdownOpen(false)
-      }
-    }
-    document.addEventListener('mousedown', close)
-    return () => document.removeEventListener('mousedown', close)
-  }, [isThumbnailDropdownOpen])
 
   useEffect(() => {
     if (!isDownloadOpen) return
@@ -352,12 +341,13 @@ function App() {
 
   // YouTube thumbnail qualities: https://i.ytimg.com/vi/VIDEO_ID/QUALITY.jpg
   const THUMBNAIL_QUALITIES = [
-    { id: 'maxresdefault', label: 'Max (1280×720)' },
-    { id: 'sddefault', label: 'High (640×480)' },
-    { id: 'hqdefault', label: 'Medium (480×360)' },
-    { id: 'mqdefault', label: 'Low (320×180)' },
-    { id: 'default', label: 'Smallest (120×90)' },
+    { id: 'maxresdefault', shortLabel: 'Max', resolution: '1280×720' },
+    { id: 'sddefault', shortLabel: 'SD', resolution: '640×480' },
+    { id: 'hqdefault', shortLabel: 'HQ', resolution: '480×360' },
+    { id: 'mqdefault', shortLabel: 'MQ', resolution: '320×180' },
+    { id: 'default', shortLabel: 'Default', resolution: '120×90' },
   ]
+  const selectedQualityInfo = THUMBNAIL_QUALITIES.find((q) => q.id === selectedThumbnailQuality) || THUMBNAIL_QUALITIES[0]
 
   const getThumbnailUrl = (quality) => {
     const id = videoInfo?.videoId
@@ -393,6 +383,9 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+      {/* Bookmark reminder bar — shown on all pages */}
+      <BookmarkBar />
+
       {/* Navigation */}
       <nav className="bg-white/80 backdrop-blur-md border-b border-gray-200 sticky top-0 z-50">
         <div className="container mx-auto px-4 py-2">
@@ -408,10 +401,12 @@ function App() {
               </span>
             </Link>
             <div className="hidden md:flex items-center space-x-6 text-sm text-gray-600">
-              <a href="#features" className="hover:text-blue-600 transition-colors">Features</a>
-              <a href="#how-it-works" className="hover:text-blue-600 transition-colors">How it Works</a>
-              <a href="#faq" className="hover:text-blue-600 transition-colors">FAQ</a>
-              <a href="#about" className="hover:text-blue-600 transition-colors">About</a>
+              <Link to="/blog" className="hover:text-blue-600 transition-colors">Blog</Link>
+              <Link to="/about" className="hover:text-blue-600 transition-colors">About</Link>
+              <Link to="/contact" className="hover:text-blue-600 transition-colors">Contact</Link>
+              <Link to="/privacy-policy" className="hover:text-blue-600 transition-colors">Privacy Policy</Link>
+              <Link to="/terms" className="hover:text-blue-600 transition-colors">Terms</Link>
+              <Link to="/disclaimer" className="hover:text-blue-600 transition-colors">Disclaimer</Link>
             </div>
           </div>
         </div>
@@ -507,72 +502,75 @@ function App() {
             )}
           </div>
 
-          {/* ─── Results: Thumbnail (top) then Transcript (below, easy access) ─── */}
-          {videoMetadata && (
-            <div className="mb-6 animate-fade-in">
-              {/* Section 1: Thumbnail & video info — compact, professional */}
-              <div className="bg-white rounded-2xl shadow-lg border border-gray-200/80 overflow-visible">
-                <div className="p-5">
-                  <div className="flex flex-col sm:flex-row gap-5">
-                    {videoMetadata.thumbnail_url && videoInfo?.videoId && (
-                      <div className="flex-shrink-0">
-                        <div className="relative group rounded-xl overflow-hidden border border-gray-200 shadow-sm w-full sm:w-52 aspect-video bg-gray-100">
+          {/* ─── Results: Thumbnail result card (horizontal layout) ─── */}
+          {videoMetadata && videoInfo?.videoId && (
+            <div className="mb-6 animate-fade-in thumbnail-result-card">
+              <div className="bg-white rounded-2xl shadow-md border border-gray-200 overflow-hidden">
+                <div className="p-5 sm:p-6">
+                  <div className="flex flex-col sm:flex-row gap-5 sm:gap-6 sm:items-start">
+                    {/* Left: Thumbnail preview — fixed ~280px, object-cover */}
+                    {videoMetadata.thumbnail_url && (
+                      <div className="flex-shrink-0 w-full sm:w-[280px]">
+                        <div className="relative rounded-xl overflow-hidden bg-gray-100 aspect-video">
                           <img
                             src={videoMetadata.thumbnail_url}
                             alt={videoMetadata.title}
                             className="w-full h-full object-cover"
                           />
-                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
                         </div>
                       </div>
                     )}
-                    <div className="flex-1 min-w-0 flex flex-col justify-center">
-                      <h3 className="text-lg font-semibold text-gray-900 line-clamp-2 leading-snug">
-                        {videoMetadata.title}
-                      </h3>
-                      <p className="text-sm text-gray-500 mt-1 flex items-center gap-1.5">
-                        <span>{videoMetadata.author_name}</span>
-                        {videoInfo?.videoId && (
-                          <>
-                            <span aria-hidden>·</span>
-                            <span className="font-mono text-xs">{videoInfo.videoId}</span>
-                          </>
-                        )}
-                      </p>
-                      {videoMetadata.thumbnail_url && videoInfo?.videoId && (
-                        <div className="mt-4 relative inline-flex" ref={thumbnailDropdownRef}>
-                          <button
-                            type="button"
-                            onClick={() => setIsThumbnailDropdownOpen((o) => !o)}
-                            className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
-                          >
-                            <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3" />
-                            </svg>
-                            Download thumbnail
-                            <svg className={`w-4 h-4 transition-transform ${isThumbnailDropdownOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                            </svg>
-                          </button>
-                          {isThumbnailDropdownOpen && (
-                            <div className="absolute left-0 bottom-full z-30 mb-1 w-56 rounded-lg border border-gray-200 bg-white py-1 shadow-xl">
-                              {THUMBNAIL_QUALITIES.map(({ id, label }) => (
-                                <button
-                                  key={id}
-                                  type="button"
-                                  onClick={() => {
-                                    downloadThumbnail(id)
-                                    setIsThumbnailDropdownOpen(false)
-                                  }}
-                                  className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-                                >
-                                  <span className="text-gray-400">{label}</span>
-                                </button>
-                              ))}
-                            </div>
-                          )}
+                    {/* Right: Video info, download heading, pills, button — all left-aligned */}
+                    <div className="flex-1 min-w-0 flex flex-col gap-4 text-left items-start">
+                      {/* Video info: title = Video ID, subtitle = YouTube · id (clickable → open video) */}
+                      <div className="w-full">
+                        <h3 className="text-lg font-semibold text-gray-900 text-left">
+                          Video ID: {videoInfo.videoId}
+                        </h3>
+                        <a
+                          href={`https://www.youtube.com/watch?v=${videoInfo.videoId}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-sm text-gray-500 mt-0.5 text-left block hover:text-indigo-600 transition-colors"
+                        >
+                          YouTube · {videoInfo.videoId}
+                        </a>
+                      </div>
+                      {/* Download thumbnail heading + quality pills — left-aligned */}
+                      <div className="w-full">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-indigo-600 mb-2 text-left">
+                          Download thumbnail
+                        </p>
+                        <div className="flex flex-wrap gap-2 justify-start">
+                          {THUMBNAIL_QUALITIES.map(({ id, shortLabel }) => (
+                            <button
+                              key={id}
+                              type="button"
+                              onClick={() => setSelectedThumbnailQuality(id)}
+                              className={`rounded-full px-3.5 py-1.5 text-sm font-medium transition-all focus:outline-none focus:ring-2 focus:ring-offset-1 ${
+                                selectedThumbnailQuality === id
+                                  ? 'gradient-primary text-white shadow-sm focus:ring-indigo-400/50'
+                                  : 'border border-gray-200 bg-gray-50/80 text-gray-600 hover:bg-indigo-50 hover:border-indigo-200 hover:text-indigo-700 focus:ring-gray-300'
+                              }`}
+                            >
+                              {shortLabel}
+                            </button>
+                          ))}
                         </div>
-                      )}
+                      </div>
+                      {/* Download button: left-aligned, compact */}
+                      <div className="w-full text-left">
+                        <button
+                          type="button"
+                          onClick={() => downloadThumbnail(selectedThumbnailQuality)}
+                          className="inline-flex items-center gap-2 rounded-lg gradient-primary text-white px-4 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-400/50 focus:ring-offset-2 transition-shadow"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3" />
+                          </svg>
+                          Download {selectedQualityInfo.resolution}
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -812,6 +810,23 @@ function App() {
             </div>
           </div>
           </section>
+
+          <FAQSection />
+
+          {/* Footer */}
+          <footer className="bg-white/80 backdrop-blur-md border-t border-gray-200 mt-16">
+            <div className="container mx-auto px-4 py-6 flex flex-col md:flex-row items-center justify-between text-sm text-gray-500">
+              <p>&copy; {new Date().getFullYear()} <Link to="/" className="hover:text-blue-600 transition-colors">YouTubeToTranscript.io</Link>. All rights reserved.</p>
+              <div className="flex flex-wrap justify-center gap-x-4 gap-y-1 mt-3 md:mt-0">
+                <Link to="/blog" className="hover:text-blue-600 transition-colors">Blog</Link>
+                <Link to="/about" className="hover:text-blue-600 transition-colors">About</Link>
+                <Link to="/contact" className="hover:text-blue-600 transition-colors">Contact</Link>
+                <Link to="/privacy-policy" className="hover:text-blue-600 transition-colors">Privacy Policy</Link>
+                <Link to="/terms" className="hover:text-blue-600 transition-colors">Terms &amp; Conditions</Link>
+                <Link to="/disclaimer" className="hover:text-blue-600 transition-colors">Disclaimer</Link>
+              </div>
+            </div>
+          </footer>
       </div>
     </div>
   )

@@ -1,3 +1,22 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer utilities {
+  /* Download section: site main colors — blue to purple gradient */
+  .gradient-primary {
+    background: linear-gradient(135deg, #2563eb 0%, #4f46e5 50%, #7c3aed 100%);
+    box-shadow: 0 1px 2px rgba(79, 70, 229, 0.25);
+  }
+  .gradient-primary:hover {
+    background: linear-gradient(135deg, #1d4ed8 0%, #4338ca 50%, #6d28d9 100%);
+    box-shadow: 0 2px 4px rgba(79, 70, 229, 0.3);
+  }
+  .gradient-primary:active {
+    box-shadow: 0 0 0 1px rgba(79, 70, 229, 0.2);
+  }
+}
+
+.thumbnail-result-card {
+  font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+}
