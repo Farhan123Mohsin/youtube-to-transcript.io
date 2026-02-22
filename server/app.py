@@ -262,6 +262,12 @@ def get_transcript():
         # Blocked / rate limit (e.g. RequestBlocked, IpBlocked, 429)
         if 'blocked' in err_msg or ('ip' in err_msg and 'block' in err_msg) or '429' in err_msg:
             return jsonify({'error': 'Requests are temporarily blocked. Please try again in a few minutes.'}), 429
+        # Proxy/connection failure → ask user to refresh
+        if any(x in err_msg for x in (
+            'proxy', 'connection refused', 'connection reset', 'connect timeout',
+            'connection error', 'max retries', 'connection aborted'
+        )):
+            return jsonify({'error': 'Proxy temporarily failed. Please refresh the page and try again.'}), 503
         # True server/unknown error → 500 (message 9 on frontend)
         print("=" * 50)
         print("FULL ERROR TRACEBACK:")

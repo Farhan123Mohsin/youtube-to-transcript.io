@@ -25,11 +25,12 @@ function getFriendlyErrorMessage(serverError, err) {
   if (serverError) {
     if (serverError === 'YouTube URL is required') return "Oh no! 😅 We need the video URL first — no link, no transcript!"
     if (serverError === 'Please complete the verification') return "Almost there! 👆 Complete the little challenge below, then hit \"Generate Transcript\"."
-    if (serverError.includes('Verification failed') || serverError.includes('complete the challenge')) return "We're doing a quick check — please complete the verification step again and hit submit. 💪"
+    if (serverError.includes('Verification failed') || serverError.includes('complete the challenge')) return "Verification didn’t go through. Please refresh the page — it will run again automatically, or wait a moment and it may retry on its own. 🔄"
     if (serverError === 'Invalid YouTube URL format') return "That link looks a bit off! 🤔 Paste a proper YouTube video link (youtube.com/watch?v=... or youtu.be/...)"
     if (serverError === 'No transcript available for this video') return "No transcript for this video. 😕 No worries — some videos have it turned off. Try another one!"
     if (serverError === 'Video is unavailable or private') return "We can't reach this video (looks private or restricted). 🔒 Try a public video?"
     if (serverError.includes('Requests are temporarily blocked') || serverError.includes('temporarily blocked')) return "Requests are temporarily blocked. 📵 Try again in a few minutes."
+    if (serverError.includes('Proxy temporarily failed') || (serverError && msg.includes('proxy') && msg.includes('refresh'))) return "Connection hiccup. Please refresh the page and try again — it usually fixes itself. 🔄"
     if (serverError.includes('Failed to fetch transcript')) return ERROR_SERVER_GLITCH_WITH_CONTACT
   }
   if (err && msg.includes('failed to fetch')) return "Connection's a bit shaky! 📶 Check your internet and try again — we'll be here."
