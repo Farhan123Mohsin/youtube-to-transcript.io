@@ -1,5 +1,11 @@
 from flask import Flask, request, jsonify, send_from_directory
 from youtube_transcript_api import YouTubeTranscriptApi, NoTranscriptFound, VideoUnavailable
+from youtube_transcript_api._errors import TranscriptsDisabled
+try:
+    from youtube_transcript_api import VideoUnplayable
+    _VIDEO_UNAVAILABLE_EXCEPTIONS = (VideoUnavailable, VideoUnplayable)
+except ImportError:
+    _VIDEO_UNAVAILABLE_EXCEPTIONS = (VideoUnavailable,)
 from flask_cors import CORS
 from dotenv import load_dotenv
 import re
@@ -234,11 +240,29 @@ def get_transcript():
             'segments': segments
         })
         
-    except NoTranscriptFound:
+    except (NoTranscriptFound, TranscriptsDisabled):
         return jsonify({'error': 'No transcript available for this video'}), 404
-    except VideoUnavailable:
+    except _VIDEO_UNAVAILABLE_EXCEPTIONS:
         return jsonify({'error': 'Video is unavailable or private'}), 404
     except Exception as e:
+        err_msg = str(e).lower()
+        # No transcript (e.g. "subtitles are disabled", "transcriptsdisabled")
+        if any(x in err_msg for x in ('transcript', 'subtitle')) and 'disabled' in err_msg:
+            return jsonify({'error': 'No transcript available for this video'}), 404
+        if 'could not retrieve' in err_msg and 'transcript' in err_msg and 'video' in err_msg:
+            if 'unavailable' in err_msg or 'private' in err_msg or 'disabled' in err_msg:
+                return jsonify({'error': 'Video is unavailable or private'}), 404
+            return jsonify({'error': 'No transcript available for this video'}), 404
+        # Video unavailable / private / age restricted / invalid
+        if any(x in err_msg for x in (
+            'unavailable', 'private', 'unplayable', 'restricted', 'video is not available',
+            'age restrict', 'invalid video', 'invalidvideoid'
+        )):
+            return jsonify({'error': 'Video is unavailable or private'}), 404
+        # Blocked / rate limit (e.g. RequestBlocked, IpBlocked, 429)
+        if 'blocked' in err_msg or ('ip' in err_msg and 'block' in err_msg) or '429' in err_msg:
+            return jsonify({'error': 'Requests are temporarily blocked. Please try again in a few minutes.'}), 429
+        # True server/unknown error → 500 (message 9 on frontend)
         print("=" * 50)
         print("FULL ERROR TRACEBACK:")
         print(traceback.format_exc())

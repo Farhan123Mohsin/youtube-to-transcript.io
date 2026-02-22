@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import BookmarkBar from '../components/BookmarkBar'
+import RelatedArticles from '../components/RelatedArticles'
 import '../App.css'
 
 const TEMPLATE_ROWS = [
@@ -43,7 +44,7 @@ function HowToWriteExplainerVideoScript() {
       <nav className="bg-white/80 backdrop-blur-md border-b border-gray-200 sticky top-0 z-50">
         <div className="container mx-auto px-4 py-2">
           <div className="flex items-center justify-between">
-            <Link to="/" className="flex items-center space-x-3">
+            <a href="/" className="flex items-center space-x-3">
               <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
                 <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -52,14 +53,11 @@ function HowToWriteExplainerVideoScript() {
               <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 YouTubeToTranscript.io
               </span>
-            </Link>
+            </a>
             <div className="hidden md:flex items-center space-x-6 text-sm text-gray-600">
               <Link to="/blog" className="hover:text-blue-600 transition-colors">Blog</Link>
               <Link to="/about" className="hover:text-blue-600 transition-colors">About</Link>
               <Link to="/contact" className="hover:text-blue-600 transition-colors">Contact</Link>
-              <Link to="/privacy-policy" className="hover:text-blue-600 transition-colors">Privacy Policy</Link>
-              <Link to="/terms" className="hover:text-blue-600 transition-colors">Terms</Link>
-              <Link to="/disclaimer" className="hover:text-blue-600 transition-colors">Disclaimer</Link>
             </div>
           </div>
         </div>
@@ -176,7 +174,7 @@ function HowToWriteExplainerVideoScript() {
             One of the most effective ways to improve your explainer video scripts is to study successful explainer videos in your niche. Generate the transcripts of the best explainer videos you can find and read them as text. Notice how they structure the problem, how quickly they introduce the solution, and how they phrase the call to action.
           </p>
           <p className="text-[#475569] mb-4 text-base">
-            You can also generate the transcript of your own explainer videos after filming. Reading your script as text makes it immediately obvious where the language is too complex, where the pacing drags, or where the message becomes unclear. Use <Link to="/" className="text-indigo-500 no-underline hover:underline">YouTubeToTranscript.io</Link> to get any YouTube video transcript instantly and free.
+            You can also generate the transcript of your own explainer videos after filming. Reading your script as text makes it immediately obvious where the language is too complex, where the pacing drags, or where the message becomes unclear. Use <Link to="/" className="text-indigo-500 no-underline hover:underline">YouTubeToTranscript.io</Link> to <Link to="/blog/how-to-get-youtube-transcript" className="text-indigo-500 no-underline hover:underline">get any YouTube video transcript</Link> instantly and free.
           </p>
 
           <div className="bg-gradient-to-br from-indigo-500 to-violet-500 rounded-[14px] py-8 px-9 my-10 text-center text-white">
@@ -200,6 +198,10 @@ function HowToWriteExplainerVideoScript() {
           <p className="text-[#475569] mb-4 text-base">Generate transcripts of top-performing explainer videos in your niche at YouTubeToTranscript.io and read them as text. Study their structure, language, and pacing. The patterns you find in successful scripts are the same patterns to apply to your own writing.</p>
         </div>
       </article>
+
+      <div className="max-w-[780px] mx-auto px-6">
+        <RelatedArticles currentSlug="how-to-write-explainer-video-script" />
+      </div>
 
       <footer className="bg-white/80 backdrop-blur-md border-t border-gray-200 mt-16">
         <div className="container mx-auto px-4 py-6 flex flex-col md:flex-row items-center justify-between text-sm text-gray-500">

@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import BookmarkBar from '../components/BookmarkBar'
+import RelatedArticles from '../components/RelatedArticles'
 import '../App.css'
 
 function HowToGetYouTubeTranscript() {
@@ -16,7 +17,7 @@ function HowToGetYouTubeTranscript() {
       <nav className="bg-white/80 backdrop-blur-md border-b border-gray-200 sticky top-0 z-50">
         <div className="container mx-auto px-4 py-2">
           <div className="flex items-center justify-between">
-            <Link to="/" className="flex items-center space-x-3">
+            <a href="/" className="flex items-center space-x-3">
               <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
                 <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -25,14 +26,11 @@ function HowToGetYouTubeTranscript() {
               <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 YouTubeToTranscript.io
               </span>
-            </Link>
+            </a>
             <div className="hidden md:flex items-center space-x-6 text-sm text-gray-600">
               <Link to="/blog" className="hover:text-blue-600 transition-colors">Blog</Link>
               <Link to="/about" className="hover:text-blue-600 transition-colors">About</Link>
               <Link to="/contact" className="hover:text-blue-600 transition-colors">Contact</Link>
-              <Link to="/privacy-policy" className="hover:text-blue-600 transition-colors">Privacy Policy</Link>
-              <Link to="/terms" className="hover:text-blue-600 transition-colors">Terms</Link>
-              <Link to="/disclaimer" className="hover:text-blue-600 transition-colors">Disclaimer</Link>
             </div>
           </div>
         </div>
@@ -137,10 +135,10 @@ function HowToGetYouTubeTranscript() {
             Once you have the transcript, the possibilities are wide:
           </p>
           <ul className="text-[#475569] pl-[22px] mb-4 text-base list-disc space-y-2">
-            <li><strong className="text-[#0f172a]">Blog posts</strong> — Turn a YouTube video into a written article</li>
+            <li><strong className="text-[#0f172a]">Blog posts</strong> — <Link to="/blog/how-to-repurpose-youtube-videos-into-blog-posts" className="text-indigo-500 no-underline hover:underline">Turn a YouTube video into a written article</Link></li>
             <li><strong className="text-[#0f172a]">Social media content</strong> — Pull out quotes and key points for Twitter, LinkedIn, or Instagram</li>
             <li><strong className="text-[#0f172a]">Study notes</strong> — Quickly review lecture content without rewatching</li>
-            <li><strong className="text-[#0f172a]">Subtitles</strong> — Use the SRT or VTT file as subtitles for the video</li>
+            <li><strong className="text-[#0f172a]">Subtitles</strong> — Use the <Link to="/blog/youtube-transcript-with-timestamps" className="text-indigo-500 no-underline hover:underline">SRT or VTT file</Link> as subtitles for the video</li>
             <li><strong className="text-[#0f172a]">Translation</strong> — Paste the transcript into a translation tool to get it in another language</li>
           </ul>
 
@@ -163,6 +161,10 @@ function HowToGetYouTubeTranscript() {
           <p className="text-[#475569] mb-4 text-base">Yes — the tool supports transcript generation in 50+ languages.</p>
         </div>
       </article>
+
+      <div className="max-w-[780px] mx-auto px-6">
+        <RelatedArticles currentSlug="how-to-get-youtube-transcript" />
+      </div>
 
       {/* Footer */}
       <footer className="bg-white/80 backdrop-blur-md border-t border-gray-200 mt-16">

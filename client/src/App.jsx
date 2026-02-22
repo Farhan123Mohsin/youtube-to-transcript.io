@@ -17,6 +17,26 @@ const PDF_UNSAFE_LANGUAGE_CODES = [
 // Same behaviour local vs online: relative /api by default; set VITE_API_BASE_URL when frontend and backend are on different origins
 const getApiBase = () => (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_BASE_URL) ? import.meta.env.VITE_API_BASE_URL.replace(/\/$/, '') : ''
 
+// Friendly error messages (sentinel for message that includes Contact link)
+const ERROR_SERVER_GLITCH_WITH_CONTACT = '__SERVER_GLITCH_CONTACT__'
+
+function getFriendlyErrorMessage(serverError, err) {
+  const msg = (serverError || (err && err.message) || '').toLowerCase()
+  if (serverError) {
+    if (serverError === 'YouTube URL is required') return "Oh no! 😅 We need the video URL first — no link, no transcript!"
+    if (serverError === 'Please complete the verification') return "Almost there! 👆 Complete the little challenge below, then hit \"Generate Transcript\"."
+    if (serverError.includes('Verification failed') || serverError.includes('complete the challenge')) return "We're doing a quick check — please complete the verification step again and hit submit. 💪"
+    if (serverError === 'Invalid YouTube URL format') return "That link looks a bit off! 🤔 Paste a proper YouTube video link (youtube.com/watch?v=... or youtu.be/...)"
+    if (serverError === 'No transcript available for this video') return "No transcript for this video. 😕 No worries — some videos have it turned off. Try another one!"
+    if (serverError === 'Video is unavailable or private') return "We can't reach this video (looks private or restricted). 🔒 Try a public video?"
+    if (serverError.includes('Requests are temporarily blocked') || serverError.includes('temporarily blocked')) return "Requests are temporarily blocked. 📵 Try again in a few minutes."
+    if (serverError.includes('Failed to fetch transcript')) return ERROR_SERVER_GLITCH_WITH_CONTACT
+  }
+  if (err && msg.includes('failed to fetch')) return "Connection's a bit shaky! 📶 Check your internet and try again — we'll be here."
+  if (serverError || err) return "Something went wrong! 🔧 Try again; if it keeps failing, let us know."
+  return "Something went wrong! 🔧 Try again; if it keeps failing, let us know."
+}
+
 function App() {
   const [youtubeUrl, setYoutubeUrl] = useState('')
   const [transcript, setTranscript] = useState('')
@@ -36,11 +56,23 @@ function App() {
   const downloadDropdownRef = useRef(null)
   const turnstileWidgetId = useRef(null)
   const turnstileContainerRef = useRef(null)
+  const urlInputRef = useRef(null)
+  const formSectionRef = useRef(null)
+
+  const scrollToGenerate = () => {
+    formSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    setTimeout(() => urlInputRef.current?.focus(), 400)
+  }
 
   // Turnstile only on production (not on localhost); site key from build env OR from backend /api/config
   const isLocalhost = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
   const siteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY || turnstileSiteKey
   const turnstileEnabled = !isLocalhost && !!siteKey
+
+  // Auto-focus URL input when homepage loads so user can paste immediately
+  useEffect(() => {
+    urlInputRef.current?.focus()
+  }, [])
 
   // Fetch Turnstile site key from backend when online (so DO doesn't need VITE_ env at build time)
   useEffect(() => {
@@ -64,7 +96,7 @@ function App() {
               setTurnstileToken(token)
             },
             'error-callback': () => {
-              setError('Verification failed. Please refresh the page.')
+              setError(getFriendlyErrorMessage('Verification failed. Please refresh the page.'))
             },
           })
         } catch (err) {
@@ -105,7 +137,7 @@ function App() {
     
     // Only require Turnstile when enabled (production with site key; not on localhost)
     if (turnstileEnabled && !turnstileToken) {
-      setError('Please complete the verification')
+      setError(getFriendlyErrorMessage('Please complete the verification'))
       return
     }
 
@@ -135,7 +167,7 @@ function App() {
       }
 
       if (data.error) {
-        setError(data.error);
+        setError(getFriendlyErrorMessage(data.error));
         return;
       }
 
@@ -155,7 +187,7 @@ function App() {
       
     } catch (err) {
       console.error('Error details:', err);
-      setError(`Failed to fetch transcript: ${err.message}`)
+      setError(getFriendlyErrorMessage(err.message, err))
       if (turnstileWidgetId.current && window.turnstile) {
         window.turnstile.reset(turnstileWidgetId.current)
         setTurnstileToken('')
@@ -172,7 +204,7 @@ function App() {
       setCopySuccess(true)
       setTimeout(() => setCopySuccess(false), 2000)
     } catch (err) {
-      setError('Failed to copy to clipboard')
+      setError("Copy didn't work! 😅 Your browser said no. You can select the transcript below and copy it manually.")
     }
   }
 
@@ -390,7 +422,7 @@ function App() {
       <nav className="bg-white/80 backdrop-blur-md border-b border-gray-200 sticky top-0 z-50">
         <div className="container mx-auto px-4 py-2">
           <div className="flex items-center justify-between">
-            <Link to="/" className="flex items-center space-x-3 cursor-pointer hover:opacity-90 transition-opacity">
+            <a href="/" className="flex items-center space-x-3 cursor-pointer hover:opacity-90 transition-opacity">
               <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
                 <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -399,64 +431,46 @@ function App() {
               <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 YouTubeToTranscript.io
               </span>
-            </Link>
+            </a>
             <div className="hidden md:flex items-center space-x-6 text-sm text-gray-600">
               <Link to="/blog" className="hover:text-blue-600 transition-colors">Blog</Link>
               <Link to="/about" className="hover:text-blue-600 transition-colors">About</Link>
               <Link to="/contact" className="hover:text-blue-600 transition-colors">Contact</Link>
-              <Link to="/privacy-policy" className="hover:text-blue-600 transition-colors">Privacy Policy</Link>
-              <Link to="/terms" className="hover:text-blue-600 transition-colors">Terms</Link>
-              <Link to="/disclaimer" className="hover:text-blue-600 transition-colors">Disclaimer</Link>
             </div>
           </div>
         </div>
       </nav>
 
       <div className="container mx-auto px-4 py-4">
-        {/* Hero Section with SEO-rich content */}
-        <header className="text-center mb-8">
+        {/* Hero Section — headline + description only */}
+        <header className="text-center mb-6">
           <h1 className="text-4xl md:text-5xl font-bold mb-4 gradient-text">
-            Generate YouTube Transcripts for FREE! 🚀
+          Youtube to Transcript Generator for FREE! 🚀
           </h1>
-          <p className="text-xl text-gray-600 mb-6 max-w-3xl mx-auto">
-            Access all transcript languages, translate to 125+ languages, easy copy and edit! 
-            Perfect for content creators, researchers, and note-takers.
+          <p className="text-xl text-gray-600 mb-0 max-w-3xl mx-auto">
+          Generate YouTube transcript instantly — free, accurate, and ready to use. Copy to clipboard or download as TXT, PDF, DOCX, SRT, VTT, or CSV. Download video thumbnails too. Supports 50+ languages with timestamps included. Perfect for content creators, students, researchers, and note-takers.
           </p>
-          
-          {/* Feature highlights */}
-          <div className="flex flex-wrap justify-center gap-4 mb-8">
-            <span className="bg-blue-100 text-blue-800 px-4 py-2 rounded-full text-sm font-medium">
-              ✅ One-click Copy
-            </span>
-            <span className="bg-green-100 text-green-800 px-4 py-2 rounded-full text-sm font-medium">
-              🌍 Supports Translation
-            </span>
-            <span className="bg-purple-100 text-purple-800 px-4 py-2 rounded-full text-sm font-medium">
-              🗣️ Multiple Languages
-            </span>
-            <span className="bg-orange-100 text-orange-800 px-4 py-2 rounded-full text-sm font-medium">
-              🤖 AI-Powered
-            </span>
-          </div>
         </header>
 
         {/* Main Content */}
         <div className="max-w-4xl mx-auto">
-          {/* URL Input Form */}
-          <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6 mb-8">
+          {/* URL Input Form — first, above features; attention-grabbing on load */}
+          <div ref={formSectionRef} id="generate-transcript" className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl border-2 border-indigo-200/60 p-6 mb-6 animate-form-attention scroll-mt-4">
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label htmlFor="youtube-url" className="block text-sm font-medium text-gray-700 mb-2">
                   YouTube Video URL
                 </label>
                 <input
+                  ref={urlInputRef}
                   type="url"
                   id="youtube-url"
                   value={youtubeUrl}
                   onChange={(e) => setYoutubeUrl(e.target.value)}
                   placeholder="https://www.youtube.com/watch?v=... or https://youtu.be/..."
-                  className="w-full px-4 py-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50/50 backdrop-blur-sm text-gray-900 placeholder-gray-500"
+                  className="w-full px-4 py-4 border-2 border-indigo-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 transition-all duration-200 bg-white text-gray-900 placeholder-gray-500"
                   disabled={isLoading}
+                  autoComplete="url"
                 />
               </div>
               {turnstileEnabled && (
@@ -467,7 +481,7 @@ function App() {
               <button
                 type="submit"
                 disabled={isLoading || !youtubeUrl}
-                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:from-gray-400 disabled:to-gray-400 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-200 flex items-center justify-center shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                className="w-full bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 disabled:from-indigo-400 disabled:to-purple-400 disabled:opacity-95 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-200 flex items-center justify-center shadow-lg shadow-indigo-500/30 hover:shadow-xl hover:shadow-indigo-500/40 transform hover:-translate-y-0.5 focus:ring-2 focus:ring-indigo-400 focus:ring-offset-2"
               >
                 {isLoading ? (
                   <>
@@ -488,18 +502,39 @@ function App() {
               </button>
             </form>
             {error && (
-              <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg animate-fade-in">
-                <div className="flex items-start">
-                  <svg className="w-5 h-5 text-red-400 mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <div>
-                    <h3 className="text-red-800 font-medium">Error</h3>
-                    <p className="text-red-600 mt-1">{error}</p>
+              <div className="mt-4 p-5 bg-amber-50/80 border border-amber-200 rounded-xl shadow-sm animate-fade-in">
+                <div className="flex gap-4">
+                  <div className="flex-shrink-0 w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center">
+                    <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="text-amber-900 font-semibold text-base">Oops!</h3>
+                    <p className="text-gray-700 mt-1.5 text-[15px] leading-relaxed">
+                      {error === ERROR_SERVER_GLITCH_WITH_CONTACT ? (
+                        <>Oops, our side glitched! 😅 Give it a moment and try again. If it keeps happening, <Link to="/contact" className="text-indigo-600 hover:text-indigo-700 underline underline-offset-1 font-medium">contact us</Link>.</>
+                      ) : (
+                        error
+                      )}
+                    </p>
                   </div>
                 </div>
               </div>
             )}
+          </div>
+
+          {/* Feature highlights — below URL form */}
+          <div className="flex flex-wrap justify-center gap-4 mb-8">
+            <span className="bg-blue-100 text-blue-800 px-4 py-2 rounded-full text-sm font-medium">
+              ✅ One-click Copy & Download
+            </span>
+            <span className="bg-purple-100 text-purple-800 px-4 py-2 rounded-full text-sm font-medium">
+              🗣️ 150+ Languages
+            </span>
+            <span className="bg-orange-100 text-orange-800 px-4 py-2 rounded-full text-sm font-medium">
+              🤖 AI-Powered
+            </span>
           </div>
 
           {/* ─── Results: Thumbnail result card (horizontal layout) ─── */}
@@ -697,6 +732,16 @@ function App() {
                 <p className="text-gray-600">Copy with one click and use with AI tools for summaries, notes, and more</p>
               </div>
             </div>
+            <div className="text-center mt-10">
+              <button
+                type="button"
+                onClick={scrollToGenerate}
+                className="inline-flex items-center gap-2 bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white font-semibold py-3 px-6 rounded-xl shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/35 transition-all"
+              >
+                <span>Try it now</span>
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" /></svg>
+              </button>
+            </div>
           </section>
 
           {/* Use Cases Section */}
@@ -809,9 +854,35 @@ function App() {
               <p className="text-gray-600">Your data is safe and never stored. Privacy-first approach.</p>
             </div>
           </div>
+            <div className="text-center mt-12">
+              <button
+                type="button"
+                onClick={scrollToGenerate}
+                className="inline-flex items-center gap-2 bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white font-semibold py-3 px-6 rounded-xl shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/35 transition-all"
+              >
+                Generate your first transcript free
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+              </button>
+            </div>
           </section>
 
           <FAQSection />
+
+          {/* CTA — below FAQ, above footer */}
+          <section className="mt-16 mb-8" aria-label="Generate transcript">
+            <div className="bg-gradient-to-r from-indigo-500/10 to-purple-500/10 border-2 border-indigo-200/60 rounded-2xl p-8 md:p-10 text-center">
+              <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3">Ready to get your transcript?</h2>
+              <p className="text-gray-600 mb-6 max-w-xl mx-auto">Paste any YouTube video URL above and get the full transcript in seconds — free.</p>
+              <button
+                type="button"
+                onClick={scrollToGenerate}
+                className="inline-flex items-center gap-2 bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white font-semibold py-4 px-8 rounded-xl shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/40 transition-all text-lg"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                Generate transcript now
+              </button>
+            </div>
+          </section>
 
           {/* Footer */}
           <footer className="bg-white/80 backdrop-blur-md border-t border-gray-200 mt-16">

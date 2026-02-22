@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import BookmarkBar from '../components/BookmarkBar'
+import RelatedArticles from '../components/RelatedArticles'
 import '../App.css'
 
 const SEO_CHECKLIST = [
@@ -28,7 +29,7 @@ function HowToRepurposeYouTubeVideosIntoBlogPosts() {
       <nav className="bg-white/80 backdrop-blur-md border-b border-gray-200 sticky top-0 z-50">
         <div className="container mx-auto px-4 py-2">
           <div className="flex items-center justify-between">
-            <Link to="/" className="flex items-center space-x-3">
+            <a href="/" className="flex items-center space-x-3">
               <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
                 <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -37,14 +38,11 @@ function HowToRepurposeYouTubeVideosIntoBlogPosts() {
               <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 YouTubeToTranscript.io
               </span>
-            </Link>
+            </a>
             <div className="hidden md:flex items-center space-x-6 text-sm text-gray-600">
               <Link to="/blog" className="hover:text-blue-600 transition-colors">Blog</Link>
               <Link to="/about" className="hover:text-blue-600 transition-colors">About</Link>
               <Link to="/contact" className="hover:text-blue-600 transition-colors">Contact</Link>
-              <Link to="/privacy-policy" className="hover:text-blue-600 transition-colors">Privacy Policy</Link>
-              <Link to="/terms" className="hover:text-blue-600 transition-colors">Terms</Link>
-              <Link to="/disclaimer" className="hover:text-blue-600 transition-colors">Disclaimer</Link>
             </div>
           </div>
         </div>
@@ -103,7 +101,7 @@ function HowToRepurposeYouTubeVideosIntoBlogPosts() {
 
           <div className="bg-[#f8fafc] border-l-4 border-indigo-500 rounded-r-[10px] py-4 px-5 my-5">
             <div className="text-[0.8rem] font-bold text-indigo-500 uppercase tracking-wide mb-1.5">Step 1</div>
-            <p className="m-0 text-[#334155]"><strong className="text-[#0f172a]">Get the video transcript</strong> — Go to <Link to="/" className="text-indigo-500 no-underline hover:underline">YouTubeToTranscript.io</Link>, paste the YouTube video URL, and generate the transcript. Download it as a DOCX file so you can edit it directly in Word or Google Docs.</p>
+            <p className="m-0 text-[#334155]"><strong className="text-[#0f172a]">Get the video transcript</strong> — Go to <Link to="/" className="text-indigo-500 no-underline hover:underline">YouTubeToTranscript.io</Link>, paste the YouTube video URL, and <Link to="/blog/how-to-get-youtube-transcript" className="text-indigo-500 no-underline hover:underline">generate the transcript</Link>. Download it as a DOCX file so you can edit it directly in Word or Google Docs.</p>
           </div>
           <div className="bg-[#f8fafc] border-l-4 border-indigo-500 rounded-r-[10px] py-4 px-5 my-5">
             <div className="text-[0.8rem] font-bold text-indigo-500 uppercase tracking-wide mb-1.5">Step 2</div>
@@ -123,7 +121,7 @@ function HowToRepurposeYouTubeVideosIntoBlogPosts() {
           </div>
           <div className="bg-[#f8fafc] border-l-4 border-indigo-500 rounded-r-[10px] py-4 px-5 my-5">
             <div className="text-[0.8rem] font-bold text-indigo-500 uppercase tracking-wide mb-1.5">Step 6</div>
-            <p className="m-0 text-[#334155]"><strong className="text-[#0f172a]">Optimize for SEO</strong> — Add your target keyword naturally in the title, first paragraph, and at least one subheading. Add a meta description. Link to related articles or pages on your site.</p>
+            <p className="m-0 text-[#334155]"><strong className="text-[#0f172a]">Optimize for SEO</strong> — Add your target keyword naturally in the title, first paragraph, and at least one subheading. Add a meta description. For more on <Link to="/blog/how-to-use-youtube-transcripts-for-seo" className="text-indigo-500 no-underline hover:underline">using YouTube transcripts for SEO</Link>, see our dedicated guide. Link to related articles or pages on your site.</p>
           </div>
           <div className="bg-[#f8fafc] border-l-4 border-indigo-500 rounded-r-[10px] py-4 px-5 my-5">
             <div className="text-[0.8rem] font-bold text-indigo-500 uppercase tracking-wide mb-1.5">Step 7</div>
@@ -196,6 +194,10 @@ function HowToRepurposeYouTubeVideosIntoBlogPosts() {
           <p className="text-[#475569] mb-4 text-base">Paste your YouTube video URL into <Link to="/" className="text-indigo-500 no-underline hover:underline">YouTubeToTranscript.io</Link> and generate the transcript for free. Download it as a DOCX file to start editing immediately.</p>
         </div>
       </article>
+
+      <div className="max-w-[780px] mx-auto px-6">
+        <RelatedArticles currentSlug="how-to-repurpose-youtube-videos-into-blog-posts" />
+      </div>
 
       {/* Footer */}
       <footer className="bg-white/80 backdrop-blur-md border-t border-gray-200 mt-16">

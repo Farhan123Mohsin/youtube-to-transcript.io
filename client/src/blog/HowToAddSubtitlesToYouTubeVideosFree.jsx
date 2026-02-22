@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import BookmarkBar from '../components/BookmarkBar'
+import RelatedArticles from '../components/RelatedArticles'
 import '../App.css'
 
 const BENEFITS = [
@@ -17,7 +18,7 @@ const METHODS = [
 ]
 
 const SRT_STEPS = [
-  { label: 'Step 1', text: <>Get your video transcript as an SRT file — Go to <Link to="/" className="text-indigo-500 no-underline hover:underline">YouTubeToTranscript.io</Link>, paste your YouTube video URL into the input field, and click Generate. Once the transcript appears, select <strong>SRT</strong> from the download options and save the file to your device.</> },
+  { label: 'Step 1', text: <>Get your video transcript as an SRT file — Go to <Link to="/" className="text-indigo-500 no-underline hover:underline">YouTubeToTranscript.io</Link>, paste your YouTube video URL (or follow our <Link to="/blog/how-to-get-youtube-transcript" className="text-indigo-500 no-underline hover:underline">step-by-step transcript guide</Link>), and click Generate. Once the transcript appears, select <strong>SRT</strong> from the download options and save the file to your device.</> },
   { label: 'Step 2', text: <>Open YouTube Studio — Go to <a href="https://studio.youtube.com" target="_blank" rel="noopener noreferrer" className="text-indigo-500 no-underline hover:underline">studio.youtube.com</a> and sign in to your YouTube account.</> },
   { label: 'Step 3', text: <><strong>Select your video</strong> — Click on <strong>Content</strong> in the left sidebar, then click on the video you want to add subtitles to.</> },
   { label: 'Step 4', text: <>Go to Subtitles — In the video details page, click <strong>Subtitles</strong> in the left menu.</> },
@@ -38,7 +39,7 @@ function HowToAddSubtitlesToYouTubeVideosFree() {
       <nav className="bg-white/80 backdrop-blur-md border-b border-gray-200 sticky top-0 z-50">
         <div className="container mx-auto px-4 py-2">
           <div className="flex items-center justify-between">
-            <Link to="/" className="flex items-center space-x-3">
+            <a href="/" className="flex items-center space-x-3">
               <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
                 <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -47,14 +48,11 @@ function HowToAddSubtitlesToYouTubeVideosFree() {
               <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 YouTubeToTranscript.io
               </span>
-            </Link>
+            </a>
             <div className="hidden md:flex items-center space-x-6 text-sm text-gray-600">
               <Link to="/blog" className="hover:text-blue-600 transition-colors">Blog</Link>
               <Link to="/about" className="hover:text-blue-600 transition-colors">About</Link>
               <Link to="/contact" className="hover:text-blue-600 transition-colors">Contact</Link>
-              <Link to="/privacy-policy" className="hover:text-blue-600 transition-colors">Privacy Policy</Link>
-              <Link to="/terms" className="hover:text-blue-600 transition-colors">Terms</Link>
-              <Link to="/disclaimer" className="hover:text-blue-600 transition-colors">Disclaimer</Link>
             </div>
           </div>
         </div>

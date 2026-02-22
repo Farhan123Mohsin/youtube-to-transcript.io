@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import BookmarkBar from '../components/BookmarkBar'
+import RelatedArticles from '../components/RelatedArticles'
 import '../App.css'
 
 const STORY_STRUCTURE = [
@@ -31,7 +32,7 @@ function HowToUseStorytellingInYouTubeVideos() {
       <nav className="bg-white/80 backdrop-blur-md border-b border-gray-200 sticky top-0 z-50">
         <div className="container mx-auto px-4 py-2">
           <div className="flex items-center justify-between">
-            <Link to="/" className="flex items-center space-x-3">
+            <a href="/" className="flex items-center space-x-3">
               <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
                 <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -40,14 +41,11 @@ function HowToUseStorytellingInYouTubeVideos() {
               <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 YouTubeToTranscript.io
               </span>
-            </Link>
+            </a>
             <div className="hidden md:flex items-center space-x-6 text-sm text-gray-600">
               <Link to="/blog" className="hover:text-blue-600 transition-colors">Blog</Link>
               <Link to="/about" className="hover:text-blue-600 transition-colors">About</Link>
               <Link to="/contact" className="hover:text-blue-600 transition-colors">Contact</Link>
-              <Link to="/privacy-policy" className="hover:text-blue-600 transition-colors">Privacy Policy</Link>
-              <Link to="/terms" className="hover:text-blue-600 transition-colors">Terms</Link>
-              <Link to="/disclaimer" className="hover:text-blue-600 transition-colors">Disclaimer</Link>
             </div>
           </div>
         </div>
@@ -132,7 +130,7 @@ function HowToUseStorytellingInYouTubeVideos() {
           </p>
 
           <div className="bg-[#f0fdf4] border border-[#86efac] rounded-[10px] py-4 px-5 my-5 text-[#166534] text-[0.95rem]">
-            <strong className="text-[#14532d]">💡 Pro Tip:</strong> After filming your video, generate the transcript and read it back as text. Story problems — weak hooks, missing conflict, unresolved open loops — are much easier to spot when you read your video as a script than when you watch it back. Use <Link to="/" className="text-indigo-500 no-underline hover:underline">YouTubeToTranscript.io</Link> to get the transcript of any YouTube video instantly.
+            <strong className="text-[#14532d]">💡 Pro Tip:</strong> After filming your video, generate the transcript and read it back as text. Story problems — weak hooks, missing conflict, unresolved open loops — are much easier to spot when you read your video as a script than when you watch it back. Use <Link to="/" className="text-indigo-500 no-underline hover:underline">YouTubeToTranscript.io</Link> to <Link to="/blog/how-to-get-youtube-transcript" className="text-indigo-500 no-underline hover:underline">get the transcript</Link> of any YouTube video instantly.
           </div>
 
           <h2 className="text-[1.35rem] font-bold text-[#0f172a] mt-9 mb-3.5">Common Storytelling Mistakes YouTubers Make</h2>
@@ -176,6 +174,10 @@ function HowToUseStorytellingInYouTubeVideos() {
           <p className="text-[#475569] mb-4 text-base">Reading your video as a transcript reveals storytelling weaknesses that are hard to notice when you are watching the video. Weak hooks, missing conflict, and unresolved open loops become immediately obvious in text form. Generate a transcript of your latest video at <Link to="/" className="text-indigo-500 no-underline hover:underline">YouTubeToTranscript.io</Link> and review it like an editor reviewing a screenplay.</p>
         </div>
       </article>
+
+      <div className="max-w-[780px] mx-auto px-6">
+        <RelatedArticles currentSlug="how-to-use-storytelling-in-youtube-videos" />
+      </div>
 
       <footer className="bg-white/80 backdrop-blur-md border-t border-gray-200 mt-16">
         <div className="container mx-auto px-4 py-6 flex flex-col md:flex-row items-center justify-between text-sm text-gray-500">
